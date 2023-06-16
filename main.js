@@ -13,6 +13,7 @@ import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import LineString from 'ol/geom/LineString';
 import image from './assets/map.svg';
+import {Circle, Fill, Stroke, Style} from 'ol/style';
 // import { easing } from 'ol/animation';
 // Map views always need a projection.  Here we just want to map image
 // coordinates directly to map coordinates, so we create a projection that uses
@@ -23,35 +24,90 @@ const projection = new Projection({
   units: 'pixels',
   extent: extent,
 });
-function addpoint(coordinates = [0, 0], map) {
-  var markerFeature = new Feature({
-    geometry: new Point(coordinates), // Replace with your marker's coordinates
-  });
-  var markerSource = new VectorSource({
-    features: [markerFeature],
-  });
-  var markerLayer = new VectorLayer({
-    source: markerSource,
-  });
-  map.addLayer(markerLayer);
-}
+
 function drawline(coordinates, map) {
-  // var startFeature = new Feature({
-  //   geometry: new Point(start), // Replace with your marker's coordinates
-  // });
-  // var endFeature = new Feature({
-  //   geometry: new Point(end), // Replace with your marker's coordinates
-  // });
   const lineFeature = new Feature({
     geometry: new LineString([...coordinates]),
   });
-  var markerSource = new VectorSource({
+  var lineSource = new VectorSource({
     features: [lineFeature],
   });
-  var markerLayer = new VectorLayer({
-    source: markerSource,
+  var lineLayer = new VectorLayer({
+    source: lineSource,
   });
-  map.addLayer(markerLayer);
+  map.addLayer(lineLayer);
+  let index = 0;
+  const animateMarker = () => {
+    if (index < coordinates.length) {
+      let marker = coordinates[index];
+      index++;
+      // var markerFeature = new Feature({
+      //   geometry: new Point(marker), // Replace with your marker's coordinates
+      // });
+      // var markerSource = new VectorSource({
+      //   features: [markerFeature],
+      // });
+      // var markerLayer = new VectorLayer({
+      //   source: markerSource,
+      //   style: new Style({
+      //     fill: new Fill({
+      //       color: 'rgba(255, 0, 0, 0.2)',
+      //     }),
+      //     stroke: new Stroke({
+      //       color: '#343434',
+      //       width: 2,
+      //     }),
+      //     image: new Circle({
+      //       radius: 4,
+      //       fill: new Fill({
+      //         color: 'rgba(28,255,43,0.82)',
+      //       }),
+      //     }),
+      //   }),
+      // });
+      // map.addLayer(markerLayer);
+      updateMarkers([marker]);
+      setTimeout(animateMarker, 2000);
+    }
+  };
+  animateMarker();
+}
+// Create a marker layer
+var markerLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: new Style({
+    fill: new Fill({
+      color: 'rgba(255, 0, 0, 0.2)',
+    }),
+    stroke: new Stroke({
+      color: '#343434',
+      width: 2,
+    }),
+    image: new Circle({
+      radius: 4,
+      fill: new Fill({
+        color: 'rgba(28,255,43,0.82)',
+      }),
+    }),
+  }),
+});
+function clearMarkers() {
+  markerLayer.getSource().clear();
+}
+// Update the marker layer with new markers
+function updateMarkers(newMarkerData) {
+  clearMarkers();
+  newMarkerData.forEach(function (markerData) {
+    console.log({markerData});
+    addMarker(markerData);
+  });
+}
+// Add a marker to the layer
+function addMarker(markerData) {
+  var marker = new Feature({
+    geometry: new Point(markerData),
+  });
+  markerLayer.getSource().addFeature(marker);
 }
 const map = new Map({
   layers: [
@@ -72,8 +128,7 @@ const map = new Map({
     maxZoom: 5,
   }),
 });
-// addpoint ([300,600],map)
-// addpoint ([300,700],map)
+map.addLayer(markerLayer);
 drawline(
   [
     [300, 600],
